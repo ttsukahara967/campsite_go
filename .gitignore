@@ -1,0 +1,52 @@
+# Go build files
+/bin/
+/build/
+/dist/
+/vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Dependency directories (go modules)
+Gopkg.lock
+Gopkg.toml
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+.DS_Store
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.iml
+
+# OS-generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Mac
+._*
+
+# Docker-related
+**/db-data/
+db-data/
+campsite_go_db-data/
+*.pid
+
+# MySQL dump or test files
+*.sql
+
+# Swag auto-generated docs (推奨:本番デプロイやCI用にはdocsを手動生成する運用にする場合だ
+

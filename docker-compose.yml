@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mysql:8
+    container_name: camp-db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: campdb
+      TZ: Asia/Tokyo
+    ports:
+      - "3307:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-ppassword"]
+      interval: 10s
+      retries: 5
+      timeout: 10s
+
+  app:
+    build: .
+    container_name: camp-gin-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USER: root
+      DB_PASS: password
+      DB_HOST: db
+      DB_NAME: campdb
+    ports:
+      - "8080:8080"
+    working_dir: /go/src/app
+#    command: go run main.go
+    # ※ここではvolumes:は原則ナシ推奨（DockerfileでCOPY済みなら不要）
+
+volumes:
+  db-data:
+
