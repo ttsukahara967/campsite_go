@@ -1,19 +1,18 @@
 FROM golang:1.24
 
+RUN go install github.com/air-verse/air@latest
+
 WORKDIR /go/src/app
 
-COPY go.mod go.sum ./
+# go.mod, go.sum, .air.tomlなどを app/ からCOPY
+COPY app/go.mod app/go.sum ./
+COPY app/.air.toml ./
 RUN go mod download
 
 COPY app/ ./
-COPY docs/ ./docs/
+# Swagger docsもapp/docs以下に生成されていればOK
+# COPY app/docs/ ./docs/
 
 RUN ls -l /go/src/app
 
-CMD ["sh", "-c", "go run *.go"]
-#CMD ["go", "run", "*.go"]
-#CMD ["go", "run", "main.go"]
-#CMD ["sleep", "600"]
-#CMD ["tail", "-f", "/dev/null"]
-
-
+CMD ["air", "-c", ".air.toml"]

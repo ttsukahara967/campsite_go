@@ -11,6 +11,10 @@
 *.test
 *.out
 
+# Air・一時ファイル
+tmp/
+tmp/*
+
 # Go workspace file
 go.work
 go.work.sum

@@ -1,0 +1,71 @@
+definitions:
+  main.Campsite:
+    properties:
+      address:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      facilities:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+  main.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /campsites:
+    get:
+      description: キャンプ場を全件取得
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Campsite'
+            type: array
+      summary: 全キャンプ場一覧
+      tags:
+      - campsites
+  /campsites/{id}:
+    get:
+      description: ID指定でキャンプ場詳細を取得
+      parameters:
+      - description: Campsite ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Campsite'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: キャンプ場詳細取得
+      tags:
+      - campsites
+swagger: "2.0"
