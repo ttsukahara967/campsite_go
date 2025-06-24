@@ -6,13 +6,26 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"campsite_go/db"
 	"campsite_go/handler"
+	"campsite_go/middleware"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+// テスト用JWT生成
+func generateTestJWT() string {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"username": "admin",
+		"exp":      time.Now().Add(time.Hour * 1).Unix(),
+	})
+	tokenString, _ := token.SignedString([]byte("your_secret_key"))
+	return tokenString
+}
 
 // テスト用DBの初期化
 func setupTestDB(t *testing.T) *sql.DB {
@@ -37,7 +50,6 @@ func setupTestDB(t *testing.T) *sql.DB {
 	if err != nil {
 		t.Fatalf("failed to create table: %v", err)
 	}
-	// 初期データ1件投入
 	_, err = db.Exec(`INSERT INTO campsites (name, address, description, facilities, price, image_url, latitude, longitude, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
 		"Test Campsite", "Tokyo", "Test Desc", "トイレ, シャワー", 1500, "http://example.com/img.png", 35.0, 139.0)
 	if err != nil {
@@ -46,37 +58,52 @@ func setupTestDB(t *testing.T) *sql.DB {
 	return db
 }
 
-// Ginルーターのセットアップ
+// Ginルーターのセットアップ（JWTミドルウェア有り）
 func setupRouterWithTestDB(t *testing.T) *gin.Engine {
 	testdb := setupTestDB(t)
 	dbw := &db.DBWrap{DB: testdb}
 	r := gin.Default()
+	r.Use(middleware.JWTAuthMiddleware()) // ★認証必須
 	r.GET("/campsites", handler.ListCampsitesHandler(dbw))
 	r.GET("/campsites/:id", handler.GetCampsiteHandler(dbw))
 	return r
 }
 
-// 一覧APIのテスト
-func TestListCampsites(t *testing.T) {
+// ★ 認証あり 一覧APIのテスト
+func TestListCampsites_Authorized(t *testing.T) {
 	router := setupRouterWithTestDB(t)
+	token := generateTestJWT()
+	req, _ := http.NewRequest("GET", "/campsites", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
 
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected 200, got %d", w.Code)
+	}
+	if !strings.Contains(w.Body.String(), "Test Campsite") {
+		t.Errorf("Expected response to contain 'Test Campsite', got: %s", w.Body.String())
+	}
+}
+
+// ★ 認証なし（失敗） 一覧API
+func TestListCampsites_Unauthorized(t *testing.T) {
+	router := setupRouterWithTestDB(t)
 	req, _ := http.NewRequest("GET", "/campsites", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected 200, got %d", w.Code)
-	}
-	if !strings.Contains(w.Body.String(), "Test Campsite") {
-		t.Errorf("Expected response to contain 'Test Campsite', got: %s", w.Body.String())
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("Expected 401, got %d", w.Code)
 	}
 }
 
-// 単体取得APIのテスト
-func TestGetCampsite(t *testing.T) {
+// ★ 単体取得API（認証あり）
+func TestGetCampsite_Authorized(t *testing.T) {
 	router := setupRouterWithTestDB(t)
-
+	token := generateTestJWT()
 	req, _ := http.NewRequest("GET", "/campsites/1", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
@@ -88,11 +115,12 @@ func TestGetCampsite(t *testing.T) {
 	}
 }
 
-// 存在しないID取得のテスト
-func TestGetCampsite_NotFound(t *testing.T) {
+// ★ 存在しないID取得（認証あり）
+func TestGetCampsite_NotFound_Authorized(t *testing.T) {
 	router := setupRouterWithTestDB(t)
-
+	token := generateTestJWT()
 	req, _ := http.NewRequest("GET", "/campsites/999", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
