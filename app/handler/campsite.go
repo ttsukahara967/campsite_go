@@ -16,7 +16,8 @@ import (
 // @Description キャンプ場を全件取得
 // @Tags campsites
 // @Produce json
-// @Success 200 {array} Campsite
+// @Success 200 {array} model.Campsite
+// @Security BearerAuth
 // @Router /campsites [get]
 func ListCampsitesHandler(db *db.DBWrap) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -35,8 +36,9 @@ func ListCampsitesHandler(db *db.DBWrap) gin.HandlerFunc {
 // @Tags campsites
 // @Produce json
 // @Param id path int true "Campsite ID"
-// @Success 200 {object} Campsite
+// @Success 200 {object} model.Campsite
 // @Failure 404 {object} ErrorResponse
+// @Security BearerAuth
 // @Router /campsites/{id} [get]
 func GetCampsiteHandler(db *db.DBWrap) gin.HandlerFunc {
 	return func(c *gin.Context) {
