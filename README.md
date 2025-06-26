@@ -20,7 +20,7 @@ This is a sample API server for campsite information, built with Go and Gin.
 
 1. Clone this repository:
     ```sh
-    git clone https://github.com/your-username/campsite_go.git
+    git clone https://github.com/ttsukahara967/campsite_go.git
     cd campsite_go
     ```
 
