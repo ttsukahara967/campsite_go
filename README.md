@@ -2,6 +2,8 @@
 
 This is a sample API server for campsite information, built with Go and Gin.
 
+![Swagger](img/screenshot/s1.png)
+
 ## Features
 
 - Simple RESTful API for campsites
